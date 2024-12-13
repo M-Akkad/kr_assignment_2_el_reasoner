@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Ensure the script is executable: chmod +x run
+
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 ONTOLOGY_FILE CLASS_NAME"
+    exit 1
+fi
+
+ONTOLOGY_FILE="$1"
+CLASS_NAME="$2"
+
+# Path to the dl4python JAR file
+DL4PYTHON_JAR="dl4python-0.1.2-jar-with-dependencies.jar"
+
+# Check whether the JAR file exists
+if [ ! -f "$DL4PYTHON_JAR" ]; then
+    echo "Error: $DL4PYTHON_JAR not found in the current directory."
+    exit 1
+fi
+
+# Check if the ontology file exists
+if [ ! -f "$ONTOLOGY_FILE" ]; then
+    echo "Error: Ontology file $ONTOLOGY_FILE not found."
+    exit 1
+fi
+
+# Start the server in the background (no need for a new tab anymore)
+java -jar $DL4PYTHON_JAR &
+
+# Capture the process ID (PID) of the server
+SERVER_PID=$!
+
+# Wait a few seconds to ensure the server is running (can be reduced)
+sleep 3
+
+# Run the reasoning script
+python3 El_reasoner.py "$ONTOLOGY_FILE" "$CLASS_NAME"
+
+# Kill the server process after reasoning is completed
+if ps -p $SERVER_PID > /dev/null; then
+    echo "Shutting down the server..."
+    kill $SERVER_PID
+    wait $SERVER_PID 2>/dev/null
+else
+    echo "Server process already terminated."
+fi
+
+echo "Script execution completed."
