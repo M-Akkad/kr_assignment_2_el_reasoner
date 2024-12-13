@@ -7,18 +7,16 @@ from typing import Dict, Set, List
 
 class ELReasoner:
     def __init__(self):
-        # Initialize Java gateway and components
         self.gateway = JavaGateway()
         self.parser = self.gateway.getOWLParser()
         self.formatter = self.gateway.getSimpleDLFormatter()
         self.el_factory = self.gateway.getELFactory()
 
-        # Data structures for completion algorithm
-        self.concepts: Dict[str, Set[str]] = {}  # Maps elements to assigned concepts
+        self.concepts: Dict[str, Set[str]] = {}
         self.successors: Dict[str, Dict[str, str]] = (
             {}
-        )  # Maps elements to role successors
-        self.initial_concepts: Dict[str, str] = {}  # Maps elements to initial concepts
+        )
+        self.initial_concepts: Dict[str, str] = {}
         self.ontology = None
 
     def load_ontology(self, file_path: str) -> None:
@@ -109,8 +107,6 @@ class ELReasoner:
             if axiom.getClass().getSimpleName() == "EquivalenceAxiom":
                 concepts_in_equiv = [self.formatter.format(c) for c in axiom.getConcepts()]
 
-                # If any concept in the equivalence is in our set,
-                # add all other concepts in the equivalence
                 if any(c in concepts for c in concepts_in_equiv):
                     for concept in concepts_in_equiv:
                         if concept not in concepts:
@@ -129,7 +125,7 @@ class ELReasoner:
 
     def compute_subsumers(self, class_name: str) -> Set[str]:
         """Main method to compute all subsumers of a given class name"""
-        # Add quotes if not present
+        
         if not class_name.startswith('"'):
             class_name = f'"{class_name}"'
 
@@ -150,8 +146,8 @@ class ELReasoner:
         # Collect all named concepts and T
         subsumers = set()
         for concept in self.concepts[initial_element]:
-            if (concept.startswith('"') and concept.endswith('"')) or concept == "T":  # Changed from "TOP" to "T"
-                subsumers.add(concept.strip('"'))  # Remove quotes for cleaner output
+            if (concept.startswith('"') and concept.endswith('"')) or concept == "T":
+                subsumers.add(concept.strip('"'))
 
         return subsumers
 
@@ -169,7 +165,6 @@ def main():
         reasoner.load_ontology(ontology_file)
         subsumers = reasoner.compute_subsumers(class_name)
 
-        # Output results in sorted order
         for subsumer in sorted(subsumers):
             print(subsumer)
 
